@@ -197,18 +197,21 @@ def hello_world():
 
 """
 
-# Every base image is Debian bullseye, whose security suite moved to archive.debian.org: the
-# deb.debian.org/security.debian.org indexes still list e.g. sqlite3 3.34.1-3+deb11u1 but the .deb
-# files 404, so any apt-get install of a security-updated package fails (evaluation#78). Must run
-# before the first apt-get update.
-DEBIAN_SECURITY_ARCHIVE_CMD = (
+# Every base image is Debian bullseye. Its security suite has already moved to archive.debian.org
+# (deb.debian.org/security.debian.org still list e.g. sqlite3 3.34.1-3+deb11u1, but the .deb files
+# 404), and main/updates will follow. archive.debian.org already serves all three suites and is
+# never pruned, so point every Debian source there; packages are then frozen at bullseye's final
+# versions. Archive Release files may carry an expired Valid-Until, hence the apt option
+# (evaluation#78). Must run before the first apt-get update.
+DEBIAN_ARCHIVE_SOURCES_CMD = (
     "find /etc/apt -name '*.list' -o -name '*.sources' | xargs -r sed -i -E "
-    "'s#https?://(deb|security)\\.debian\\.org/debian-security#http://archive.debian.org/debian-security#g'"
+    "'s#https?://(deb|security)\\.debian\\.org/#http://archive.debian.org/#g' && "
+    "echo 'Acquire::Check-Valid-Until \"false\";' > /etc/apt/apt.conf.d/99baxbench-archive"
 )
 
 # RUN commands that should be executed for all Docker images.
 COMMON_DOCKER_RUN_COMMANDS = [
-    DEBIAN_SECURITY_ARCHIVE_CMD,
+    DEBIAN_ARCHIVE_SOURCES_CMD,
     "apt-get update",  # We use the sqlite3 binary for validating exploits.
     "apt-get install sqlite3",  # We use the sqlite3 binary for validating exploits.
 ]
