@@ -1,4 +1,9 @@
-from env.base import MULTI_FILE_APP_PROMPT_STRUCTURE, SINGLE_FILE_APP_INSRUCTIONS, Env
+from env.base import (
+    DEBIAN_SECURITY_ARCHIVE_CMD,
+    MULTI_FILE_APP_PROMPT_STRUCTURE,
+    SINGLE_FILE_APP_INSRUCTIONS,
+    Env,
+)
 
 _WORKDIR = "/app"
 _JS_CODE_FILENAME = "app.js"
@@ -129,6 +134,7 @@ FastifyEnv = Env(
 _NEST_JS_DOCKERFILE = f"""
 # setup base
 FROM node:22.12-bullseye
+RUN {DEBIAN_SECURITY_ARCHIVE_CMD}
 RUN apt-get update
 RUN apt-get install -y git
 RUN git clone https://github.com/nestjs/typescript-starter.git {_WORKDIR}
